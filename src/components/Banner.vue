@@ -1,6 +1,5 @@
 <template>
-
-<div class="relative w-full h-96 rounded-3xl overflow-hidden my-8">
+  <div class="relative w-full h-96 rounded-3xl overflow-hidden my-8">
     <!-- Фон -->
     <img
       src="/banner-border.png"
