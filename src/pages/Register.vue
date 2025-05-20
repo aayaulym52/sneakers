@@ -50,7 +50,6 @@ export default {
   },
   methods: {
     async register() {
-      // Проверка на пустые поля
       if (!this.name || !this.email || !this.password) {
         alert("Пожалуйста, заполните все поля!");
         return;
