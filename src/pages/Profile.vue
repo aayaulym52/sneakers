@@ -4,14 +4,12 @@ import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import CardList from '../components/CardList.vue'; 
 
-// Получаем токен и проверяем авторизацию
 const router = useRouter();
 const route = useRoute();
 const token = localStorage.getItem("token");
 const isAuthenticated = ref(!!token);
 const orders = ref([]);
 
-// Функция для загрузки заказов
 const fetchOrders = async () => {
   try {
     const { data } = await axios.get(
@@ -38,7 +36,6 @@ onMounted(async () => {
   await fetchOrders(); // Загружаем заказы
 });
 
-// Если пользователь уже на /profile и снова пришёл сюда — заново загружаем заказы
 watch(
   () => route.fullPath,
   async () => {
