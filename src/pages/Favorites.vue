@@ -1,27 +1,29 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-
+import { onMounted, computed } from "vue";
+import { useShopStore } from "../stores/shop";
 import CardList from "../components/CardList.vue";
 
-const favorites = ref([]);
+const shop = useShopStore();
+
+const favoriteItems = computed(() =>
+  shop.items.filter((item) => item.isFavorite)
+);
+
 onMounted(async () => {
-  try {
-    const { data } = await axios.get(
-      "https://713aef495936238c.mokky.dev/favorites?_relations=items"
-    );
-    favorites.value = data.map((obj) => obj.item);
-  } catch (err) {
-    console.log(err);
-  }
+  await shop.fetchItems();
 });
 </script>
 
 <template>
-  <div class="p-10">
-  <div v-if="favorites.length > 0">
+  <div
+    v-if="shop.notification"
+    class="fixed top-8 right-6 bg-green-500 text-md text-white py-2 px-5 rounded shadow-md z-50 transition-all"
+  >
+    {{ shop.notification }}
+  </div>
+  <div v-if="favoriteItems.length > 0">
     <h2 class="text-3xl font-bold mb-8">Мои закладки</h2>
-    <CardList :items="favorites" is-favorites />
+    <CardList :items="favoriteItems" />
   </div>
 
   <div v-else class="flex flex-col items-center">
@@ -36,6 +38,5 @@ onMounted(async () => {
         Вернуться назад
       </button>
     </router-link>
-  </div>
   </div>
 </template>

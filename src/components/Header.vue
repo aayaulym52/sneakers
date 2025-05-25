@@ -1,8 +1,4 @@
 <script setup>
-defineProps({
-  totalPrice: Number,
-});
-
 const emit = defineEmits(["openDrawer"]);
 </script>
 
@@ -20,11 +16,10 @@ const emit = defineEmits(["openDrawer"]);
 
     <ul class="flex items-center gap-10">
       <li
-        @click="() => emit('openDrawer')"
+        @click="emit('openDrawer')"
         class="flex items-center cursor-pointer gap-3 text-gray-500 hover:text-black"
       >
         <img src="/cart.svg" alt="Cart" />
-        <b>{{ totalPrice }}руб.</b>
       </li>
 
       <router-link to="/favorites">

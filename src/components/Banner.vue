@@ -1,13 +1,11 @@
 <template>
   <div class="relative w-full h-96 rounded-3xl overflow-hidden my-8">
-    <!-- Фон -->
     <img
       src="/banner-border.png"
       alt="Фон"
       class="absolute inset-0 w-full h-full object-cover"
     />
 
-    <!-- Модель -->
     <img
       src="/banner.png"
       alt="Модель"
@@ -15,7 +13,6 @@
       style="right: 0; max-width: none"
     />
 
-    <!-- Логотип -->
     <img
       src="/banner-logo.png"
       alt="Логотип"
@@ -38,5 +35,4 @@
       </router-link>
     </div>
   </div>
-
 </template>

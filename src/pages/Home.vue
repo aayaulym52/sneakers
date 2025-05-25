@@ -1,136 +1,34 @@
 <script setup>
-import { reactive, watch, ref, onMounted } from "vue";
-import axios from "axios";
+import { useShopStore } from "../stores/shop";
+import { reactive, watch, onMounted } from "vue";
 import debounce from "lodash.debounce";
-import { inject } from "vue";
 import CardList from "../components/CardList.vue";
-import Banner from '../components/Banner.vue'
+import Banner from "../components/Banner.vue";
 
-const { cart, addToCart, removeFromCart } = inject("cart");
-
-const items = ref([]); //state - хранит все кроссовки - массивы
-
+const shop = useShopStore();
 const filters = reactive({
   sortBy: "title",
   searchQuery: "",
-}); // state реактивный - хранит фильтры - обьекты
-
-const onClickAddPlus = (item) => {
-  if (!item.isAdded) {
-    addToCart(item);
-  } else {
-    removeFromCart(item);
-  }
-};
-
-const onChangeSelect = (event) => {
-  filters.sortBy = event.target.value;
-}; // следит за изменением селекта
-
-const onChangeSearchInput = debounce((event) => {
-  filters.searchQuery = event.target.value;
-}, 300); // следит за изменением фильтров
-
-const addToFavorite = async (item) => {
-  try {
-    if (!item.isFavorite) {
-      const obj = {
-        item_id: item.id,
-      };
-
-      item.isFavorite = true;
-
-      const { data } = await axios.post(
-        `https://713aef495936238c.mokky.dev/favorites`,
-        obj
-      );
-
-      item.favoriteId = data.id;
-    } else {
-      item.isFavorite = false;
-
-      await axios.delete(
-        `https://713aef495936238c.mokky.dev/favorites/${item.favoriteId}`
-      );
-      item.favoriteId = null;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-const fetchFavorites = async () => {
-  try {
-    const { data: favorites } = await axios.get(
-      `https://713aef495936238c.mokky.dev/favorites`
-    );
-
-    items.value = items.value.map((item) => {
-      const favorite = favorites.find(
-        (favorite) => favorite.item_id === item.id
-      );
-      if (!favorite) {
-        return item;
-      }
-      return {
-        ...item,
-        isFavorite: true,
-        favoriteId: favorite.id,
-      };
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-const fetchItems = async () => {
-  try {
-    const params = {
-      sortBy: filters.sortBy,
-    };
-
-    if (filters.searchQuery) {
-      params.title = `*${filters.searchQuery}*`;
-    }
-
-    const { data } = await axios.get(
-      `https://713aef495936238c.mokky.dev/items`,
-      {
-        params,
-      }
-    );
-    items.value = data.map((obj) => ({
-      ...obj,
-      isFavorite: false,
-      favoriteId: null,
-      isAdded: false,
-    }));
-  } catch (err) {
-    console.log(err);
-  }
-}; //функция которая будет при каждом изменении фильтров или же при первом рендере, выполнять запрос на бэкэнд
-
-onMounted(async () => {
-  const localCart = localStorage.getItem("cart");
-  cart.value = localCart ? JSON.parse(localCart) : [];
-
-  await fetchItems();
-  await fetchFavorites();
-
-  items.value = items.value.map((item) => ({
-    ...item,
-    isAdded: cart.value.some((cartItem) => cartItem.id === item.id),
-  }));
+  category: "",
 });
 
-watch(cart, () => {
-  items.value = items.value.map((item) => ({
-    ...item,
-    isAdded: false,
-  }));
-});
+const onChangeSearchInput = debounce((e) => {
+  filters.searchQuery = e.target.value;
+}, 300);
 
-watch(filters, fetchItems);
+const onChangeSelect = (e) => (filters.sortBy = e.target.value);
+
+watch(
+  filters,
+  () => {
+    shop.fetchItems(filters.sortBy, filters.searchQuery);
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  shop.fetchItems(filters.sortBy, filters.searchQuery);
+});
 </script>
 
 <template>
@@ -143,10 +41,11 @@ watch(filters, fetchItems);
       <select
         @change="onChangeSelect"
         class="py-2 px-3 border rounded-md outline-none"
+        :value="filters.sortBy"
       >
-        <option value="name">По названию</option>
-        <option value="price">По цене (дешевое)</option>
-        <option value="-price">По цене (дорогие)</option>
+        <option value="title">По названию</option>
+        <option value="price">По цене (дешевле)</option>
+        <option value="-price">По цене (дороже)</option>
       </select>
       <div class="relative">
         <img class="absolute left-4 top-3" src="/search.svg" />
@@ -158,11 +57,8 @@ watch(filters, fetchItems);
       </div>
     </div>
   </div>
+
   <div class="mt-10">
-    <CardList
-      :items="items"
-      @add-to-favorite="addToFavorite"
-      @add-to-cart="onClickAddPlus"
-    />
+    <CardList :items="shop.items" />
   </div>
 </template>
